@@ -595,7 +595,11 @@ void loop() {
 #else // milos, if no quad enc
 #ifdef USE_AS5600 // milos, if we use one as5600
 #ifndef USE_TCA9548 // milos, if we don't use two as5600
+#ifndef USE_SPLITAXIS
         SendInputReport(turn.x + MID_REPORT_X + 1, brake.val, accel.val, clutch.val, hbrake.val, button); // milos, one as5600 at x-axis
+#else
+        SendInputReport(turn.x + MID_REPORT_X + 1, brake.val, gasAxis, clutch.val, hbrake.val, button); // split axis: gas on Z
+#endif
 #else // with tca, if two as5600
         SendInputReport(turn.x + MID_REPORT_Y + 1, turn.y + MID_REPORT_Y + 1, accel.val, clutch.val, hbrake.val, button); // milos, we use two as5600, send 2nd as5600 at y-axis instead of brake pedal
 #endif // end of tca
