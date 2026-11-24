@@ -101,6 +101,12 @@ In order to compile the firmware yourself you may use Windows, 8, 10 or 11, you 
 ## Troubleshooting X-axis stuck at -540deg
 If you used some of the earlier firmware versions before fw-v22X, windows remembered the axis raw HID calibration which was +-32k. This issue occurs when you upload the latest firmware with new X-axis calibration 0-65k, which is incompatible with the previous HID calibration that Windows remembered for this FFB joystick device. However, there is a very easy fix for it, all we need to do is reset the device calibration in Windows. This can be done by using the program **[DXtweak2](https://github.com/ranenbg/Arduino-FFB-wheel/tree/master/FFB_misc_programs)**. Open the program and select Arduino Leonardo as a device if you have more than one FFB-capable device. Click on the device defaults button, then click the apply button and close the program. That's all.
 
+## Fork fix
+Create new version called fw-v250dwk
+what this version does
+- can split axis Y and Z using only one axis of joystick
+- read raw angle from AS5600 instead of absolute angle (this will fix wrong MPOS and ZPOS problem)
+
 ## Credits
 
 - FFB HID and USB core for Arduino by: Peter Barrett
