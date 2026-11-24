@@ -1,114 +1,82 @@
-# Arduino-FFB-wheel
-A stand-alone DirectInput USB device is recognized in Windows as a joystick with force feedback functionality, based on BRWheel by Fernando Igor in 2017.
+## Fork fix: fw-v250dwk (Leonardo + AS5600 + single-axis joystick)
 
-Firmware features:
-- supported Arduino boards: Leonardo, Micro, and ProMicro (ATmega32U4, 5V, 16MHz)
-- 4 analog axis + 1 for an optical or magnetic encoder, 2 FFB axis (with multichannel PWM or DAC output)
-- for 2 FFB axis mode - 2 magnetic encoders may be used (for X and Y axis)
-- automatic or manual analog axis calibration
-- up to 16 buttons by 4x4 matrix or via **[button box firmware](https://github.com/ranenbg/Arduino-FFB-wheel/tree/master/tx_rw_ferrari_458_wheel_emu_16buttons)** uploaded to Arduino Nano/Uno
-- up to 24 buttons by 3x8bit shift register chips
-- analog XY H-pattern shifter (configurable to 6 or 8 gears + reverse gear, XY axis invert, reverse gear button invert)
-- fully supported 16bit FFB effects (custom force effect not implemented)
-- envelope and conditional block effects, start delay, duration, deadband, and direction enable
-- FFB calculation and axis/button update rate 500Hz (2ms period)
-- many firmware options (external 12bit ADC/DAC, automatic/manual pedal calibration, z-index support/offset/reset, hat switch, button matrix, external shift register, hardware wheel re-center, xy analog H shifter, FFB on analog axis)
-- RS232 serial interface for configuring many firmware settings (10ms period)
-- fully adjustable FFB output in the form of 4-channel digital 16bit PWM or 2-channel analog 12bit DAC signals
-- available PWM modes: PWM+-, PWM+dir, PWM0-50-100, RCM (if 2 FFB axis: 2CH PWM+-, 2CH PWM+dir, 2CH PWM0-50-100, 2CH RCM)
-- available DAC modes: DAC+-, DAC+dir, DAC0-50-100 (if 2 FFB axis: 1CH DAC+-, 2CH DAC+dir, 2CH DAC0-50-100)
-- load cell support for 24bit HX711 chip (for Y axis only)
-- all firmware settings are stored in EEPROM (and automatically loaded at each Arduino powerup)
-- original wheel control user interface **[Arduino FFB gui](https://github.com/ranenbg/Arduino-FFB-gui)** for an easy configuration and monitoring of all inputs/outputs 
+This fork adds one extra firmware build, **fw-v250dwk**, for this hardware combination:
 
-Detailed documentation and more information about the firmware can be found in txt files inside **[docs](https://github.com/ranenbg/Arduino-FFB-wheel/tree/master/brWheel_my/docs)** folder. Compiled firmware in HEX format for Arduino Leonardo and Micro can be found in **[leonardo hex](https://github.com/ranenbg/Arduino-FFB-wheel/tree/master/brWheel_my/leonardo%20hex)**, while firmware for Arduino ProMicro (with replacement pinouts) is located in **[promicro hex](https://github.com/ranenbg/Arduino-FFB-wheel/tree/master/brWheel_my/promicro%20hex)** folder. All necessary wiring diagrams are in **[wirings](https://github.com/ranenbg/Arduino-FFB-wheel/tree/master/brWheel_my/wirings)** folder.
+- Arduino Leonardo (ATmega32U4)
+- AS5600 magnetic encoder as the steering sensor
+- **one** analog joystick axis used as both throttle and brake
+- H-bridge motor driver in PWM+- mode (tested with an L298N module)
 
-# Firmware pinouts and wiring diagrams
-![plot](./brWheel_my/wirings/Firmware-v250%20pinout.png)
-## Optical encoder and LED wiring
-![plot](./brWheel_my/wirings/encoder_ffb_clip_led_wiring_diagram.png)
-## Magnetic encoder wiring
-![plot](./brWheel_my/wirings/as5600_wiring_diagram.png)
-![plot](./brWheel_my/wirings/double_as5600_wiring_diagram.png)
-## Motor driver wiring
-![plot](./brWheel_my/wirings/bts7960_wiring_diagram.png)
-![plot](./brWheel_my/wirings/double_bts7960_wiring_diagram.png)
-## Button box firmware pinouts - for Arduino Nano/Uno
-![plot](./brWheel_my/wirings/Firmware-vXX1%20button%20box%20pinout.png)
-## Button box firmware pinouts - for shift register chips
-![plot](./brWheel_my/wirings/shift_register_wiring_diagram.png)
-## Button matrix pinouts
-![plot](./brWheel_my/wirings/button_matrix_wiring_diagram.png)
-## External i2C device pinouts
-![plot](./brWheel_my/wirings/ads1015_wiring_diagram.png)
-![plot](./brWheel_my/wirings/mcp4725_wiring_diagram.png)
-![plot](./brWheel_my/wirings/double_mcp4725_wiring_diagram.png)
-## HX711 and load cell wiring
-![plot](./brWheel_my/wirings/HX711_load_cell_wiring_diagram.png)
-## XY shifter wiring
-![plot](./brWheel_my/wirings/XY_shifter_wiring_diagram.png)
+Everything else is the unmodified firmware from [ranenbg/Arduino-FFB-wheel](https://github.com/ranenbg/Arduino-FFB-wheel). This fork is not affiliated with or endorsed by its authors.
 
-## Firmware option description
-Due to the 32k flash memory limitation in Arduino Leonardo (ATmega32U4), each HEX file is compiled with a certain firmware option. A one-letter abbreviation for each option is placed in the firmware version string and one needs to consider carefully which one to choose. In the release, I've compiled a few of the most often-used firmware option combinations for you.
+### What changed
 
-Firmware versions (old), I have put some logic in firmware naming, so here is some basic explanation (if you plan to upgrade old firmware until fw-v24X please respect this):
--  	 fw-vXX,  two digits only are test versions of new firmware features (not used anymore)
--  	 fw-vXX0, three digits ending with 0 - the basic firmware with no external devices support, except for optical/magnetic encoder (has PWM signal as FFB output)
--  	 fw-vXX1, three digits ending with 1 - adds support for the external button box
--  	 fw-vXX2, three digits ending with 2 - adds support for both external button box and load cell
--  	 fw-vXX3, three digits ending with 3 - adds support for external button box, load cell, and two external 12bit DAC - MCP4725 (has analog signal as FFB output)
+| File | Change |
+|---|---|
+| `brWheel_my/brWheel_my.ino` | With `USE_AS5600` and `USE_SPLITAXIS` both enabled, the HID report now sends the split throttle value (`gasAxis`) on the Z axis. Before, the throttle half of the split axis was computed but never sent in the single-AS5600 case. |
+| `arduino-1.8.5/libraries/AS5600/AS5600.cpp` | `getCumulativePosition()` now reads the `RAW ANGLE` register instead of `ANGLE`. |
+| `brWheel_my/leonardo hex/fw_v250/brWheel_my.ino.leonardo_v250dwk.hex` | The compiled build (no bootloader included). |
 
-Firmware versions (new) from fw-v250, I've changed firmware naming logic such that all 3 digits in the name now represent firmware version only (letters are options, see below)
-- a - pedal autocalibration enabled (if no a, then manual calibration is enabled)
-- b - 2 FFB axis support with physical output (4-channel digital PWM or 2-channel analog DAC outputs available)
--	w - magnetic encoder AS5600 support
-- d - no optical encoder support
-- z - support 3rd channel or z-index on optical encoders
-- h - enabled Hat Switch (uses first 4 buttons)
-- s - enabled external 12bit ADC for analog inputs (ADS1015 i2C)
-- t - enabled 4x4 button matrix
-- f - enabled XY analog H-pattern shifter
-- i - enabled averaging of analog inputs (with 4 samples - 12bit resolution)
--	e - support for two additional digital buttons (on pins A2, A3 - clutch and handbrake axis will be unavailable)
--	x - enables the option to select to which (analog) axis FFB is tied to
-- r - support for external shift register chips for 24 buttons (3x SN74ALS166 wired in series)
-- n - support for external button box for 16 buttons via Arduino Nano (with my button box firmware)
-- l - support for HX711 chip and load cell (on the y-axis)
-- g - support for external 12bit DAC to be used for analog FFB output (2x MCP4725 i2C)
--	p - no EEPROM support for loading/saving firmware settings (firmware defaults are loaded at each startup)
--	u - support for 2 magnetic encoders (AS5600) via i2C multiplexer chip (TCA9548A)
-- m - replacement pinouts for ProMicro (for FFB clipping LED, buttons 3 and 4, PWM direction pin)
+**Why RAW ANGLE:** the `ANGLE` register is scaled by the chip's `ZPOS`/`MPOS`/`MANG` settings. If a module has been programmed with a partial range, `ANGLE` stays clamped outside that range while `RAW ANGLE` keeps changing. On the fork author's module (`ZPOS` = 1666, `MPOS` = 672) the steering axis froze for part of each turn around the 4095 to 0 wrap point. Reading `RAW ANGLE` fixed it there. The trade-off is that `RAW ANGLE` does not go through the chip's output filter, so the value can be slightly noisier.
 
-Note* Some combinations are not possible at the same time, while some are not possible due to ATmega32U4 32k memory limit.
-      If you decide to compile the source code yourself, enabling these options is just a matter of commenting/uncommenting their corresponding lines at the beginning of Config.h
+**Version letters** (printed by the `V` serial command): `d` = no optical encoder, `w` = AS5600, `k` = split axis (one analog input becomes brake and throttle).
 
-## Firmware download
+### Wiring
 
-+ ***[Latest Release](https://github.com/ranenbg/Arduino-FFB-wheel/releases/latest)***
-+ ***[Past Versions](https://github.com/ranenbg/Arduino-FFB-wheel/releases)***
+| Part | Connection |
+|---|---|
+| AS5600 | VCC to 5V, GND and DIR to GND, SDA to pin 2, SCL to pin 3 |
+| Joystick (one axis) | outer legs to 5V and GND, wiper to **A1** |
+| Motor driver (PWM+-) | pin 9 and pin 10 are the two PWM outputs, pin 11 is the enable output |
 
-## Firmware upload procedure
-You can use **[XLoader](https://github.com/ranenbg/Arduino-FFB-wheel/tree/master/XLoader)**:
-- set 57600baud, ATmega32U4 microcontroller and select desired HEX
-- press the reset button on Arduino (or shortly connect the RST pin to GND)
-- select the newly appeared COM port (Arduino in bootloader mode*) and press upload, you will only have a few seconds
+Joystick behavior: the split point is fixed at the middle of the ADC range (512). Pushing toward 5V gives **throttle (Z axis)**, pushing toward GND gives **brake (Y axis)**. Swap the 5V and GND legs to reverse the direction.
 
-*It is possible that some cheap Chinese clones of Arduino Leonardo, Micro, or ProMicro do not have a bootloader programmed. In that case you need to upload the original Arduino Leonardo bootloader first. You can find more details about it here: https://docs.arduino.cc/built-in-examples/arduino-isp/ArduinoISP
+L298N example: pin 9 to IN1, pin 10 to IN2, pin 11 to ENA (remove the ENA jumper), common GND, separate motor supply. Keeping the ENA jumper also works but leaves the motor always enabled, so it brakes instead of free-wheeling at zero force.
 
-## How to compile the source
-In order to compile the firmware yourself you may use Windows, 8, 10 or 11, you need to install Arduino IDE v1.8.19 and Arduino Boards v1.6.21. You must place all **[libraries](https://github.com/ranenbg/Arduino-FFB-wheel/tree/master/arduino-1.8.5/libraries)** in your .../documents/Arduino/Libraries folder. In Windows folder options set to show hidden files and folders then navigate to C:\Users\yourusername\AppData\Local\Arduino15\packages\arduino\hardware\avr\1.6.21\cores. Rename the folder "arduino" as a backup as we will need some files from it later, I just add "arduino_org" to the filename. Create a new folder called "arduino" and place the entire content from  **[modified core](https://github.com/ranenbg/Arduino-FFB-wheel/tree/master/arduino-1.8.5/hardware/arduino/cores/arduino)** into newly created "arduino" folder. Navigate back to "arduino_org" folder and copy files "IPAddress.cpp", "IPAddress.h", "new.cpp" and "new.h", then paste and replace the ones inside the "arduino" folder. That should fix all errors and you should be able to compile the code. Bare in mind that if you make any changes to HID or USB core files you will need to repeat the procedure and paste all modified files into the newly created "arduino" folder each time.
+**Safety:** a force feedback motor can hurt you. First test with low voltage, no load, a firmly mounted motor and a way to cut the power immediately.
 
-## Troubleshooting X-axis stuck at -540deg
-If you used some of the earlier firmware versions before fw-v22X, windows remembered the axis raw HID calibration which was +-32k. This issue occurs when you upload the latest firmware with new X-axis calibration 0-65k, which is incompatible with the previous HID calibration that Windows remembered for this FFB joystick device. However, there is a very easy fix for it, all we need to do is reset the device calibration in Windows. This can be done by using the program **[DXtweak2](https://github.com/ranenbg/Arduino-FFB-wheel/tree/master/FFB_misc_programs)**. Open the program and select Arduino Leonardo as a device if you have more than one FFB-capable device. Click on the device defaults button, then click the apply button and close the program. That's all.
+### Flashing
 
-## Fork fix
-Create new version called fw-v250dwk
-what this version does
-- can split axis Y and Z using only one axis of joystick
-- read raw angle from AS5600 instead of absolute angle (this will fix wrong MPOS and ZPOS problem)
+1. Download the `.hex` from the [Releases](../../releases) page (SHA-256: `<fill in after the final build>`).
+2. Use XLoader (included in the `XLoader` folder): baud 57600, device ATmega32U4.
+3. Press reset on the Leonardo, select the new COM port and press Upload within a few seconds.
+4. Open a serial terminal on the board's COM port (line ending: carriage return), send `V`. The answer must be `fw-v250dwk`. If it is not, the wrong file was flashed.
+
+### First start and configuration
+
+- Use [Arduino-FFB-gui](https://github.com/ranenbg/Arduino-FFB-gui) for configuration. A virtual joystick such as **vJoy** can be picked by the GUI instead of the Arduino. Disable it while using the GUI.
+- On a board that never ran this firmware family, the EEPROM is empty and defaults are loaded (CPR 4096 for AS5600, PWM+- mode, 7.8 kHz).
+- The firmware loads defaults only when the stored version number differs from the firmware's. A board that previously ran another `v250` build keeps its old EEPROM values (for example CPR 2400 from an optical encoder build). Check **CPR = 4096** in the GUI after flashing.
+- Pedal limits are also stored in EEPROM. `YR` prints them (brake min, brake max, ...). For the split-axis brake use `YA 0` and `YB 1023`, then save to EEPROM.
+
+### Known limitations
+
+- Leonardo only. Not tested on Pro Micro.
+- The throttle half of the split axis has no calibration. The brake half uses the manual pedal limits above. The `a` (autocalibration) option is not part of this build.
+- No dead zone around the joystick center. If the stick does not rest at exactly 512, a small brake or throttle value may remain at rest.
+- Some joysticks reach the end of their electrical range before the end of their mechanical travel, so the axis saturates early. This is a property of the joystick, not of the firmware.
+- `RAW ANGLE` is unfiltered (see above).
+
+### Build it yourself
+
+Follow *How to compile the source* above (Arduino IDE 1.8.19, Arduino AVR Boards 1.6.21, modified core), then in `brWheel_my/Config.h`:
+
+- comment out `#define USE_QUADRATURE_ENCODER`
+- uncomment `#define USE_AS5600`
+- uncomment `#define USE_SPLITAXIS`
+
+Select **Arduino Leonardo**, compile, and use *Sketch, Export Compiled Binary* (take the file without `with_bootloader`). Flash it as described above and check that `V` answers `fw-v250dwk`.
 
 ## Credits
 
 - FFB HID and USB core for Arduino by: Peter Barrett
 - BRWheel firmware by: Tero Loimuneva, Saku Kekkonen, Etienne Saint-Paul, and Fernando Igor
 https://github.com/fernandoigor/BRWheel/tree/alphatest
+- Arduino-FFB-wheel firmware and Arduino-FFB-gui by: Milos Rankovic (ranenbg)
+https://github.com/ranenbg/Arduino-FFB-wheel
+https://github.com/ranenbg/Arduino-FFB-gui
+- AS5600 library by: Rob Tillaart (MIT license, see `arduino-1.8.5/libraries/AS5600/LICENSE`)
+- Other bundled libraries (HX711_ADC, Adafruit ADS1X15, Adafruit MCP4725, digitalWriteFast, ...) keep their own authors and licenses, see each library folder.
+- fw-v250dwk fork changes by: Sor76
+
+The original copyright and permission notice from the firmware authors is kept unchanged in the headers of the source files (for example `brWheel_my/brWheel_my.ino`) and applies to this fork as well.
