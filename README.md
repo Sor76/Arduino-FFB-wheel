@@ -37,7 +37,7 @@ L298N example: pin 9 to IN1, pin 10 to IN2, pin 11 to ENA (remove the ENA jumper
 
 ### Flashing
 
-1. Download the `.hex` from the [Releases](../../releases) page (SHA-256: `<fill in after the final build>`).
+1. Download the `.hex` from the [Releases](../../releases) page (SHA-256: `<b94387fa0d6a03e20e099df93f89b0d3c513aadf6f5ee9889caeb8d7ca7ce397>`).
 2. Use XLoader (included in the `XLoader` folder): baud 57600, device ATmega32U4.
 3. Press reset on the Leonardo, select the new COM port and press Upload within a few seconds.
 4. Open a serial terminal on the board's COM port (line ending: carriage return), send `V`. The answer must be `fw-v250dwk`. If it is not, the wrong file was flashed.
